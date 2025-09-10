@@ -45,8 +45,9 @@ fun Application.configureRouting() {
     routing {
 
         staticResources("/task-ui", "task-ui")
+        taskRoutes()
 
-        get("/tasks") {
+        get(Routes.TASKS) {
             println("method /tasks called")
             val tasks = TaskRepository.allTasks()
             call.respondText(
@@ -55,7 +56,7 @@ fun Application.configureRouting() {
             )
         }
 
-        get("tasks/byPriority/{priority?}"){
+        get(Routes.TASKS_BY_PRIORITY){
             val priorityAsText = call.parameters["priority"]
             if(priorityAsText==null){
                 call.respond(HttpStatusCode.BadRequest)
@@ -78,33 +79,6 @@ fun Application.configureRouting() {
                 call.respond(HttpStatusCode.BadRequest)
             }
 
-        }
-
-        post("/addTasks"){
-            val formContent = call.receiveParameters()
-            val params = Triple(
-                formContent["name"]?:"",
-                formContent["description"]?:"",
-                formContent["priority"]?:"Low"
-            )
-
-            if(params.toList().any{it.isEmpty()}){
-                call.respond(HttpStatusCode.BadRequest)
-                return@post
-            }
-
-            try{
-                val priority = Priority.valueOf(params.third)
-                TaskRepository.addTask(Task(params.first,params.second,priority))
-                call.respondText("Task added successfully", status = HttpStatusCode.Created)
-            }
-            catch (e:IllegalArgumentException){
-                println("Exception in adding task: ${e.message}")
-                call.respond(HttpStatusCode.BadRequest)
-            }catch (e: IllegalStateException){
-                println("Exception in adding task: ${e.message}")
-                call.respond(HttpStatusCode.BadRequest)
-            }
         }
 
     }

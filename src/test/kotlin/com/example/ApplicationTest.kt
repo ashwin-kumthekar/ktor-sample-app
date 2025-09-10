@@ -1,5 +1,6 @@
 package com.example
 
+import com.example.model.Routes
 import io.ktor.client.request.*
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
@@ -39,7 +40,7 @@ class ApplicationTest {
     fun newTaskCanBeAdded()=testApplication{
         application{module()}
 
-        val response1 = client.post("/addTasks"){
+        val response1 = client.post(Routes.ADD_TASKS){
             header(
                 HttpHeaders.ContentType,
                 ContentType.Application.FormUrlEncoded.toString()
@@ -54,7 +55,7 @@ class ApplicationTest {
         assertEquals(HttpStatusCode.Created,response1.status)
         println("status: ${response1.status}")
 
-        val response2 = client.get("/tasks")
+        val response2 = client.get(Routes.TASKS)
         assertEquals(HttpStatusCode.OK,response2.status)
         val body = response2.bodyAsText()
         assertContains(body,"swimming")
