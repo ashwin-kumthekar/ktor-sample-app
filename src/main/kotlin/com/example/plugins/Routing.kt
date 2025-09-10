@@ -5,6 +5,9 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import com.example.model.*
+import io.ktor.server.http.content.staticResources
+import io.ktor.server.request.receiveParameters
+import java.lang.IllegalStateException
 
 
 /*
@@ -40,6 +43,9 @@ fun Application.configureRouting() {
 
 fun Application.configureRouting() {
     routing {
+
+        staticResources("/task-ui", "task-ui")
+
         get("/tasks") {
             println("method /tasks called")
             val tasks = TaskRepository.allTasks()
@@ -75,11 +81,30 @@ fun Application.configureRouting() {
         }
 
         post("/addTasks"){
-            val taskName = call.request.queryParameters["name"]
-            val taskDescription = call.request.queryParameters["description"]
-            val taskPriority = call.request.queryParameters["priority"]
+            val formContent = call.receiveParameters()
+            val params = Triple(
+                formContent["name"]?:"",
+                formContent["description"]?:"",
+                formContent["priority"]?:"Low"
+            )
 
+            if(params.toList().any{it.isEmpty()}){
+                call.respond(HttpStatusCode.BadRequest)
+                return@post
+            }
 
+            try{
+                val priority = Priority.valueOf(params.third)
+                TaskRepository.addTask(Task(params.first,params.second,priority))
+                call.respondText("Task added successfully", status = HttpStatusCode.Created)
+            }
+            catch (e:IllegalArgumentException){
+                println("Exception in adding task: ${e.message}")
+                call.respond(HttpStatusCode.BadRequest)
+            }catch (e: IllegalStateException){
+                println("Exception in adding task: ${e.message}")
+                call.respond(HttpStatusCode.BadRequest)
+            }
         }
 
     }

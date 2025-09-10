@@ -18,7 +18,7 @@ object TaskRepository{
     }
 
     fun taskByPriority(priority: Priority) = tasks.filter{it.priority ==priority}
-    fun taskByName(name:String) = tasks.filter{it.name.equals(name,ignoreCase = true)}
+    fun taskByName(name:String) = tasks.find{it.name.equals(name,ignoreCase = true)}
 
     fun addTask(task:Task){
         if(taskByName(task.name)!=null){
